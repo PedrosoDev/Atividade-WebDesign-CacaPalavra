@@ -1,0 +1,460 @@
+<html>
+
+<head>
+    <title>Pontos importantes</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/General.css">
+    <link rel="stylesheet" href="../css/modal.css">
+    <link rel="stylesheet" href="../css/Normalize.css">
+    <link rel="stylesheet" href="../css/WordSearch.css">
+    <link rel="stylesheet" href="../css/WordSearchMenu.css">
+
+    <script src="../scripts/Game.js"></script>
+    <script src="../scripts/Cronometro.js"></script>
+
+    <!-- Script para utilidades -->
+    <script>
+
+        let windowLoadFuncs = [];
+        let chronometer;
+        let funcCreateWordSearch;
+        windowLoadFuncs.push(() => {
+            chronometer = new Cronometro(1000, "timer");
+            const buttonRestart = document.getElementById("button-restart")
+            const buttonRecreate = document.getElementById("button-recreate")
+            buttonRecreate.onclick = () => window.location.reload();
+            buttonRestart.onclick = () => recreateWordSearch();
+        });
+
+        function CheckboxStyle(checkboxID, textID) {
+            const checkbox = document.getElementById(checkboxID);
+            const checkboxText = document.getElementById(textID);
+
+            checkbox.onmouseenter = () => {
+                checkboxText.style.color = "#26a0da";
+            }
+
+            checkbox.onmouseleave = () => {
+                checkboxText.style.color = "#454545";
+            }
+
+            checkboxText.onmouseenter = () => {
+                checkboxText.style.color = "#26a0da";
+            }
+
+            checkboxText.onmouseleave = () => {
+                checkboxText.style.color = "#454545";
+            }
+        }
+
+        let modal = false;
+        function loadUtilsWordSearch(game) {
+            let mouseDown = null;
+            let mouseUp = null;
+            modal = false;
+
+            CheckboxStyle("checkbox-tips", "checkbox-tips-Text");
+
+            const divs = document.getElementsByClassName("gameSquare");
+            const gameboard = document.getElementById("gameboard");
+
+            let counter = 0
+            for (let i = 0; i < divs.length; i++) {
+                const gameSquare = divs[i];
+
+                gameSquare.onmousedown = (event) => {
+                    if (event.which != 1) return;
+                    mouseDown = event;
+                    createLine(getPos(mouseDown.target, gameboard).x, getPos(mouseDown.target, gameboard).y,
+                        getPos(event.target, gameboard).x, getPos(event.target, gameboard).y,
+                        "line",
+                        "#80ffc2");
+                }
+
+                gameSquare.onmousemove = (event) => {
+
+
+
+                    if (mouseDown != null) {
+
+                        createLine(getPos(mouseDown.target, gameboard).x, getPos(mouseDown.target, gameboard).y,
+                            getPos(event.target, gameboard).x, getPos(event.target, gameboard).y,
+                            "line",
+                            "#80ffc2");
+
+                    }
+
+
+                }
+
+                gameSquare.onmouseup = (event) => {
+                    if (mouseDown == null) return;
+                    mouseUp = event;
+
+                    //checa se o usuario achou uma palavra
+                    const wordFound = game.checkFoundWord(mouseDown.target.id, mouseUp.target.id);
+                    if (wordFound != null) {
+
+                        createLine(getPos(mouseDown.target, gameboard).x, getPos(mouseDown.target, gameboard).y,
+                            getPos(mouseUp.target, gameboard).x, getPos(mouseUp.target, gameboard).y,
+                            "line" + wordFound,
+                            "#56f0e2");
+
+                        counter++;
+                    }
+
+                    mouseDown = null;
+                    mouseUp = null;
+
+                    if (document.getElementById("line") != null) {
+                        document.getElementById("line").remove();
+                    }
+
+                    //checa se o usuario achou todas as palavras
+
+                    if (game.checkAllWordsFound()) {
+                        chronometer.pause();
+                        if (!modal) {
+                            showModal();
+                            modal = true;
+                        }
+                    }
+                }
+            }
+
+        }
+
+        //codigo do modal
+
+        var winX = null;
+        var winY = null;
+
+        window.addEventListener('scroll', function () {
+            if (winX !== null && winY !== null) {
+                window.scrollTo(winX, winY);
+            }
+        });
+
+        function disableWindowScroll() {
+            winX = window.scrollX;
+            winY = window.scrollY;
+        }
+
+        function enableWindowScroll() {
+            winX = null;
+            winY = null;
+        }
+
+
+        function showModal() {
+            const modal = document.getElementById("modal-congraturation");
+            modal.classList.add("show-modal");
+            disableWindowScroll();
+            modal.addEventListener("click", (event) => {
+                if (event.target.id == "modal-congraturation" || event.target.className == "close-modal") {
+                    modal.classList.remove("show-modal");
+                    enableWindowScroll();
+                }
+            });
+        }
+
+        //Utilidades Geral
+        function autoHeight(element) {
+            element.style.height = "36px";
+            element.style.height = (element.scrollHeight) + "px";
+        }
+
+        function getPos(firstElem, secondElem) {
+
+            const firstRect = firstElem.getBoundingClientRect();
+            const secondRect = secondElem.getBoundingClientRect();
+            var docEl = document.documentElement;
+
+            return {
+                x: (firstRect.left + window.pageXOffset - secondRect.left) - window.scrollX,
+                y: (firstRect.top + window.pageYOffset - secondRect.top) - window.scrollY,
+            };
+        }
+
+        window.onload = () => {
+            for (let i = 0; i < windowLoadFuncs.length; i++) {
+                windowLoadFuncs[i]();
+            }
+        }
+
+
+    </script>
+    <!-- Script para o menu de criação do Caça-Palavras -->
+    <script>
+
+        windowLoadFuncs.push(() => {
+
+            CheckboxStyle("checkbox-menu", "checkbox-menu-Text");
+
+            const button = document.getElementById("button-wordSearch");
+            const infoSize = document.getElementById("info-size");
+            const infoWords = document.getElementById("info-words");
+
+            const inputLine = document.getElementById("inputLine");
+            const inputColumn = document.getElementById("inputColumn");
+            const inputWords = document.getElementById("inputWords");
+
+            button.onclick = (event) => {
+
+                inputLine.style.borderColor = "#82ddd5"
+                inputColumn.style.borderColor = "#82ddd5"
+                inputWords.style.borderColor = "#82ddd5"
+                infoSize.classList.add("not-visible");
+                infoSize.innerHTML = ""
+                inputWords.style.borderColor = "#82ddd5"
+                infoWords.classList.add("not-visible");
+                infoWords.innerHTML = ""
+
+
+                const lineSize = inputLine.value
+                const columnSize = inputColumn.value
+                const media = (lineSize + columnSize) / 2;
+
+                if (lineSize == "" || columnSize == "") {
+                    if (lineSize == null) {
+                        inputLine.style.borderColor = "red";
+                    } if (columnSize == null) {
+                        inputColumn.style.borderColor = "red";
+                    }
+                    infoSize.classList.remove("not-visible");
+                    infoSize.innerHTML = "Insira algum número!"
+                    return;
+                } if (isNaN(lineSize) || isNaN(columnSize)) {
+                    if (isNaN(lineSize)) {
+                        inputLine.style.borderColor = "red";
+                    } if (isNaN(columnSize)) {
+                        inputColumn.style.borderColor = "red";
+                    }
+                    infoSize.classList.remove("not-visible");
+                    infoSize.innerHTML = "Insira somente números!"
+                    return;
+                } if (lineSize < 15 || columnSize < 15) {
+                    if (lineSize < 15) {
+                        inputLine.style.borderColor = "red";
+                    } if (columnSize < 15) {
+                        inputColumn.style.borderColor = "red";
+                    }
+                    infoSize.classList.remove("not-visible");
+                    infoSize.innerHTML = "O número mínimo é 15!"
+                    return;
+                }
+
+                const words = inputWords.value.trim().replace(" ", "").split(",");
+                const regex = /[0-9]/;
+                if (words.length == 1 && words[0] == "") {
+                    inputWords.style.borderColor = "red";
+                    infoWords.classList.remove("not-visible");
+                    infoWords.innerHTML = "Digite algumas palavras!"
+                    return;
+                }
+
+
+
+                for (let i = 0; i < words.length; i++) {
+                    words[i] = retiraAcento(words[i].trim().replace(" ", ""));
+                    const word = words[i];
+                    if (regex.test(word)) {
+                        inputWords.style.borderColor = "red";
+                        infoWords.classList.remove("not-visible");
+                        infoWords.innerHTML = "Digite apenas palavras!"
+                        return;
+                    }
+                }
+
+                if (words.length > media) {
+                    inputWords.style.borderColor = "red";
+                    infoWords.classList.remove("not-visible");
+                    infoWords.innerHTML = "Digite apenas " + media + " palavras!"
+                    return;
+                }
+
+
+                if (infoSize.classList.contains("not-visible") && infoWords.classList.contains("not-visible")) {
+                    const timer = document.getElementById("checkbox-menu").checked;
+                    funcCreateWordSearch = () => createWordSearch(lineSize, columnSize, words, timer);
+                    funcCreateWordSearch();
+                }
+
+            }
+
+        });
+
+        function retiraAcento(palavra) {
+            const com_acento = "áàãâäéèêëíìîïóòõôöúùûüçÁÀÃÂÄÉÈÊËÍÌÎÏÓÒÕÖÔÚÙÛÜÇ´`^¨~";
+            const sem_acento = "aaaaaeeeeiiiiooooouuuucAAAAAEEEEIIIIOOOOOUUUUC     ";
+
+            for (l in palavra) {
+                for (l2 in com_acento) {
+                    if (palavra[l] == com_acento[l2]) {
+                        palavra = palavra.replace(palavra[l], sem_acento[l2]);
+                    }
+                }
+            }
+            return palavra;
+        }
+
+    </script>
+    <!-- Script para criar o Caça-Plavras -->
+    <script>
+
+        function createWordSearch(line, column, words, timer) {
+
+            const menu = document.getElementById("menu-wordSearch-create");
+            const wordSearch = document.getElementById("wordSearch");
+            if (menu) {
+                menu.remove();
+            }
+            wordSearch.classList.remove("not-visible");
+
+
+            if (timer) chronometer.start();
+            else document.getElementById("timer").remove();
+
+
+
+            const game = new Game(column, line);
+            game.generateWords(words);
+            game.randomLetters();
+            game.createWordSearch();
+
+            showTips();
+            loadUtilsWordSearch(game);
+
+        }
+
+        function recreateWordSearch() {
+
+            chronometer.stop();
+
+            let gameSquares = document.getElementsByClassName("gameSquare");
+            do {
+                gameSquares = document.getElementsByClassName("gameSquare");
+                if (gameSquares) {
+                    for (let i = 0; i < gameSquares.length; i++) {
+                        const gameSquare = gameSquares[i];
+                        gameSquare.remove();
+                    }
+                }
+            } while (gameSquares.length > 0);
+
+
+            let wordsList = document.getElementsByClassName("words");
+            do {
+                wordsList = document.getElementsByClassName("words");
+                if (wordsList) {
+                    for (let i = 0; i < wordsList.length; i++) {
+                        const word = wordsList[i];
+                        word.remove();
+                    }
+                }
+            } while (wordsList.length > 0);
+
+            let lines = document.getElementsByClassName("line");
+            do {
+                lines = document.getElementsByClassName("line");
+                if (lines) {
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i];
+                        line.remove();
+                    }
+                }
+            } while (lines.length > 0);
+
+            funcCreateWordSearch();
+        }
+
+        function showTips() {
+            let tip = document.getElementById("checkbox-tips").checked;
+
+            const wordsTips = document.getElementsByClassName("words");
+
+
+            for (let i = 0; i < wordsTips.length; i++) {
+                const wordTip = wordsTips[i];
+
+                wordTip.onmouseenter = (event) => {
+                    tip = document.getElementById("checkbox-tips").checked;
+                    if (tip && !modal) showTip(event.target.innerHTML);
+                }
+
+                wordTip.onmouseleave = (event) => {
+                    removeTip();
+                }
+
+            }
+        };
+
+    </script>
+</head>
+
+<body>
+    <div class="menu">
+        <div class="opcoes">
+            <a href="../index.html" class="opcaoTexto">Resumo</a>
+            <a id="select" class="opcaoTexto">Caça-Palavras</a>
+            <a href="PerguntasERespostas.html" class="opcaoTexto">Perguntas e Respostas</a>
+            <a href="Aplicações.html" class="opcaoTexto">Aplicações Similares</a>
+            <a href="Referencias.html" class="opcaoTexto">Referência Bibliografica</a>
+        </div>
+    </div>
+    <div id="telaPrincipal">
+        <div class="container">
+            <h1 class="title">Caça-Palavras</h1>
+
+            <div id="menu-wordSearch-create">
+                <div id="size-container">
+                    <input type="text" placeholder="Linhas" id="inputLine" class="text-box text-size" />
+                    <input type="text" placeholder="Colunas" id="inputColumn" class="text-box text-size" />
+                </div>
+                <p id="info-size" class="info not-visible"></p>
+
+                <textarea type="text" placeholder="Palavras Para Encontrar" oninput="autoHeight(this)" id="inputWords"
+                    class="text-box"></textarea>
+                <p id="info-words" class="info not-visible"></p>
+
+                <div id="checkbox-container">
+                    <input type="checkbox" id="checkbox-menu" value="true" class="checkbox" checked />
+                    <label for="checkbox-menu" id="checkbox-menu-Text"
+                        class="checkbox-Text notSeletor">Cronometro</label>
+                </div>
+
+                <div id="button-wordSearch" class="btn btn1 notSeletor">Criar</div>
+
+            </div>
+
+            <div id="wordSearch" class="not-visible">
+                <div id="menu-wordSearch">
+                    <p id="timer">00:00:00</p>
+                    <div>
+                        <input type="checkbox" id="checkbox-tips" value="true" class="checkbox" />
+                        <label for="checkbox-tips" id="checkbox-tips-Text"
+                            class="checkbox-Text notSeletor">Dicas</label>
+                    </div>
+                    <div id="button-restart" class="btn btn1 notSeletor">Reiniciar</div>
+                    <div id="button-recreate" class="btn btn1 notSeletor">Recriar</div>
+                </div>
+                <div id="gameboard"></div>
+                <div id="wordsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-congraturation" class="modal-container">
+        <div class="modal">
+            <div class="close-modal">X</div>
+            <img src="../img/congraturation.jpg" class="modal-image">
+            <div class="modal-text">
+                <h1 class="title-modal">Parabéns!</h1>
+                <p class="paragragh-modal">Você conseguiu concluir o caça-palavras!</p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,57 @@
+#wordSearch {
+  display: flex
+}
+#gameboard {
+  display: flex;
+  border: 1px solid #d9d9d9;
+  position: relative;
+  flex-wrap: wrap;
+  margin-bottom: 50px;
+  z-index: 12
+}
+#wordsList {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  border: 1px solid #d9d9d9;
+  margin-left: 5px
+}
+.words {
+  font-family: Arial;
+  font-size: 16px;
+  color: #424446
+}
+.gameSquare {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Arial;
+  height: 27;
+  width: 27;
+  text-transform: capitalize;
+  z-index: 10
+}
+.line {
+  opacity: 50%;
+  position: absolute;
+  height: 27px;
+  border-radius: 14px;
+  z-index: 11;
+  pointer-events: none
+}
+.container {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  flex-direction: column
+}
+#menu-wordSearch{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 15px;
+}
+#timer{
+  margin-right: 26px;
+  
+}
