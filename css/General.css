@@ -152,7 +152,7 @@ th {
   user-select: none
 }
 .not-visible {
-  visibility: hidden;
+  visibility: hidden
 }
 button:focus,
 input:focus,
